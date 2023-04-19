@@ -215,10 +215,11 @@ function Copy-NamesToClipboard{
  #$ownerCost = $lvlData.cost - ($lvlData.reward.fp|%{[math]::Ceiling($mult*$_)}|Measure-Object -Sum).Sum
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
- $nameOrder=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.name.substring($_.name.length - 1)) $($_.Text)"}))
- $SlotInfo = "$owner (self: $ownerCost)  $($shortnames.($gbName -replace(" |'", '_'))) $($gbLvl -1) → $gbLvl  $(5..1|%{"P$_($($grpNames.controls["txtInvest$_"].text)) "})"
- 
- "$nameOrder`n$SlotInfo" | Set-Clipboard
+ $header="$owner $($shortnames.($gbName -replace(" |'", '_')))  $($gbLvl -1) → $gbLvl"
+ $investors=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.Text) P$($_.name.substring($_.name.length - 1)) ($($grpNames.controls["txtInvest$($_.name.substring($_.name.length - 1))"].text))" }))
+ $footer="(self: $ownerCost)"
+
+ "$header`n$investors`n$footer" | Set-Clipboard
 }
 
 function Show-ToolTip {
