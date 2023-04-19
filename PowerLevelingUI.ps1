@@ -231,6 +231,7 @@ $gbData.gbs.PSObject.Properties.Name|sort|%{[void]($cmbGB.items.add($_ -replace(
 $lblGBLvl = Add-FormObject $grpGB -objType Label -objName lblGBLvl -x ($cmbGB.Right + $pad * 2) -y ($lblGB.top) -autoSize -text "→Lvl:"
 $numGBLvl = Add-FormObject $grpGB -objType NumericUpDown -objName numGBLvl -x ($lblGBLvl.Right + $pad) -y $cmbGB.top -text 40 -w 40
 $numGBLvl.Add_ValueChanged({Update-Slots})
+$numGBLvl.Maximum=250
 
 $lblOwnerCost = Add-FormObject $grpGB -objType Label -objName lblOwnerCost -x $pad -y ($cmbGB.bottom + $Pad) -autoSize -text "Owner cost:"
 $txtOwnerCost = Add-FormObject $grpGB -objType TextBox -objName txtOwnerCost -x ($lblOwnerCost.right + $pad) -y ($lblOwnerCost.top - 2) -width 75
