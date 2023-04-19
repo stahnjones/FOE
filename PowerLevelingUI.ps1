@@ -185,7 +185,7 @@ function Show-ToolTip {
 
 $swf = "System.Windows.Forms"
 $pad = 10
-
+Add-Type -AssemblyName $swf
 
 $form = New-Object "$swf.form"
 $form.Text = "Power-Leveling Slot Cycling"
