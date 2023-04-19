@@ -215,7 +215,7 @@ function Copy-NamesToClipboard{
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
  $header="$owner $($shortnames.($gbName -replace(" |'", '_')))  $($gbLvl -1) → $gbLvl"
- $investors=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.Text) P$($_.name.substring($_.name.length - 1)) ($($grpNames.controls["txtInvest$($_.name.substring($_.name.length - 1))"].text))" }))
+ $investors=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.name.substring($_.name.length - 1)): $($_.Text) - $($grpNames.controls["txtInvest$($_.name.substring($_.name.length - 1))"].text)" }))
  $footer="(self: $ownerCost)"
 
  "$header`n$investors`n$footer" | Set-Clipboard
