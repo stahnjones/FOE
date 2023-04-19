@@ -212,7 +212,6 @@ function Copy-NamesToClipboard{
 
  $lvlData = $gbData.gbsData.$($gbName -replace(" |'", '_')).levels[$gbLvl - 1]
  $owner = $txtOwner.text
- #$ownerCost = $lvlData.cost - ($lvlData.reward.fp|%{[math]::Ceiling($mult*$_)}|Measure-Object -Sum).Sum
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
  $header="$owner $($shortnames.($gbName -replace(" |'", '_')))  $($gbLvl -1) → $gbLvl"
@@ -258,6 +257,8 @@ $grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad
 
  if ($_ -le 5) {
   $tInv=Add-FormObject $grpNames -objType textbox -objName "txtInvest$_" -x ($tTxt.Right + $Pad *2) -y $tTxt.top -width 40 -margin @{right=10}
+  $tInv.TabStop = $false
+  $tInv.Enabled = $false
  }
 }
 
@@ -273,6 +274,7 @@ $numMult.Add_ValueChanged({Update-Slots})
 
 $lblGB = Add-FormObject $grpGB -objType Label -objName lblGB -x ($pad) -y ($txtOwner.bottom + $pad ) -autoSize -text "GB:"
 $cmbGB = Add-FormObject $grpGB -objType ComboBox -objName cmbGB -x ($lblGB.Right + $Pad) -y ($lblGB.top - 2) -width 150
+$cmbGB.add_SelectedValueChanged({Update-Slots})
 
 $gbData.gbs.PSObject.Properties.Name|sort|%{[void]($cmbGB.items.add($_ -replace('_', ' ') -replace(' s ', "'s ")))}
 
