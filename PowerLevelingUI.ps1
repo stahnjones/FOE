@@ -4,6 +4,53 @@ Param(
 
 $cache_file="$PSScriptRoot\gbData.json"
 
+
+$shortNames=@{
+ Observatory='Obs'
+ Temple_of_Relics='ToR'
+ Oracle_of_Delphi='OoD'
+ Galata_Tower='Galata'
+ Tower_of_Babel='ToB'
+ Statue_of_Zeus='Zeus'
+ Colosseum='Colo'
+ Lighthouse_of_Alexandria='LoA'
+ Hagia_Sophia='HS'
+ Cathedral_of_Aachen='CoA'
+ St_Mark_s_Basilica='SMB'
+ Notre_Dame='ND'
+ Saint_Basil_s_Cathedral='SBC'
+ Castel_del_Monte='CdM'
+ Deal_Castle='DC'
+ Frauenkirche_of_Dresden='FoD'
+ Capitol='Cap'
+ Royal_Albert_Hall='RAH'
+ Chateau_Frontenac='CF'
+ Alcatraz='Traz'
+ Space_Needle='SN'
+ Atomium='Atom'
+ Cape_Canaveral='CC'
+ The_Habitat='Hab'
+ Lotus_Temple ='LT'
+ Innovation_Tower='Inno'
+ Truce_Tower='Truce'
+ Voyager_V1='Voy'
+ The_Arc='Arc'
+ Rain_Forest_Project='RFP'
+ Gaea_Statue='Gaea'
+ Arctic_Orangery='AO'
+ Seed_Vault='SV'
+ Atlantis_Museum='AM'
+ The_Kraken='Kra'
+ The_Blue_Galaxy='BG'
+ Terracotta_Army='TA'
+ Himeji_Castle='HC'
+ The_Virgo_Project='VP'
+ Star_Gazer='SG'
+ Space_Carrier='SC'
+ Flying_Island='Island'
+ AI_Core='Core'
+}
+
 if ($save_cache.IsPresent -or ! (test-path $cache_file)) {
  Retrieve-GbData
  $gbData|ConvertTo-Json -Depth 99 -Compress | sc $cache_file
@@ -147,7 +194,7 @@ function Update-Slots{
 
  if (! $gbName -or ! $gbLvl -or ! $mult) {return}
 
- $lvlData = $gbData.gbsData.$($gbName -replace(' ', '_')).levels[$gbLvl - 1]
+ $lvlData = $gbData.gbsData.$($gbName -replace(" |'", '_')).levels[$gbLvl - 1]
  1..5|%{
   $grpNames.controls["txtInvest$_"].text = [math]::Ceiling($lvlData.reward[$_-1].fp * $mult)
  }
@@ -163,13 +210,13 @@ function Copy-NamesToClipboard{
  $gbLvl = $numGBLvl.value
  $mult = $numMult.value
 
- $lvlData = $gbData.gbsData.$($gbName -replace(' ', '_')).levels[$gbLvl - 1]
+ $lvlData = $gbData.gbsData.$($gbName -replace(" |'", '_')).levels[$gbLvl - 1]
  $owner = $txtOwner.text
  #$ownerCost = $lvlData.cost - ($lvlData.reward.fp|%{[math]::Ceiling($mult*$_)}|Measure-Object -Sum).Sum
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
  $nameOrder=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.name.substring($_.name.length - 1)) $($_.Text)"}))
- $SlotInfo = "$owner (self: $ownerCost)  $gbName $($gbLvl -1) → $gbLvl  $(5..1|%{"P$_($($grpNames.controls["txtInvest$_"].text)) "})"
+ $SlotInfo = "$owner (self: $ownerCost)  $($shortnames.($gbName -replace(" |'", '_'))) $($gbLvl -1) → $gbLvl  $(5..1|%{"P$_($($grpNames.controls["txtInvest$_"].text)) "})"
  
  "$nameOrder`n$SlotInfo" | Set-Clipboard
 }
@@ -226,7 +273,7 @@ $numMult.Add_ValueChanged({Update-Slots})
 $lblGB = Add-FormObject $grpGB -objType Label -objName lblGB -x ($pad) -y ($txtOwner.bottom + $pad ) -autoSize -text "GB:"
 $cmbGB = Add-FormObject $grpGB -objType ComboBox -objName cmbGB -x ($lblGB.Right + $Pad) -y ($lblGB.top - 2) -width 150
 
-$gbData.gbs.PSObject.Properties.Name|sort|%{[void]($cmbGB.items.add($_ -replace('_', ' ')))}
+$gbData.gbs.PSObject.Properties.Name|sort|%{[void]($cmbGB.items.add($_ -replace('_', ' ') -replace(' s ', "'s ")))}
 
 $lblGBLvl = Add-FormObject $grpGB -objType Label -objName lblGBLvl -x ($cmbGB.Right + $pad * 2) -y ($lblGB.top) -autoSize -text "→Lvl:"
 $numGBLvl = Add-FormObject $grpGB -objType NumericUpDown -objName numGBLvl -x ($lblGBLvl.Right + $pad) -y $cmbGB.top -text 40 -w 40
