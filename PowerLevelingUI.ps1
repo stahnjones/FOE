@@ -53,6 +53,8 @@ function CycleSlots{
  foreach ($sourceID in $sourceIDs){
   $grpNames.controls["txtName$sourceID"].text = $script:names[$sourceIDs.indexof($sourceID)]
  }
+
+ $numGBLvl.Value++
 }
 
 function Retrieve-GbData{
@@ -150,6 +152,9 @@ function Update-Slots{
   $grpNames.controls["txtInvest$_"].text = [math]::Ceiling($lvlData.reward[$_-1].fp * $mult)
  }
 
+ $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
+
+ $txtOwnerCost.text = $ownerCost
 
 }
 
@@ -164,7 +169,7 @@ function Copy-NamesToClipboard{
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
  $nameOrder=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.name.substring($_.name.length - 1)) $($_.Text)"}))
- $SlotInfo = "$owner (self: $ownerCost)  $($gbLvl -1) → $gbLvl  $(5..1|%{"P$_($($grpNames.controls["txtInvest$_"].text)) "})"
+ $SlotInfo = "$owner (self: $ownerCost)  $gbName $($gbLvl -1) → $gbLvl  $(5..1|%{"P$_($($grpNames.controls["txtInvest$_"].text)) "})"
  
  "$nameOrder`n$SlotInfo" | Set-Clipboard
 }
@@ -185,6 +190,7 @@ function Show-ToolTip {
 
 $swf = "System.Windows.Forms"
 $pad = 10
+
 Add-Type -AssemblyName $swf
 
 $form = New-Object "$swf.form"
@@ -226,8 +232,8 @@ $lblGBLvl = Add-FormObject $grpGB -objType Label -objName lblGBLvl -x ($cmbGB.Ri
 $numGBLvl = Add-FormObject $grpGB -objType NumericUpDown -objName numGBLvl -x ($lblGBLvl.Right + $pad) -y $cmbGB.top -text 40 -w 40
 $numGBLvl.Add_ValueChanged({Update-Slots})
 
-
-
+$lblOwnerCost = Add-FormObject $grpGB -objType Label -objName lblOwnerCost -x $pad -y ($cmbGB.bottom + $Pad) -autoSize -text "Owner cost:"
+$txtOwnerCost = Add-FormObject $grpGB -objType TextBox -objName txtOwnerCost -x ($lblOwnerCost.right + $pad) -y ($lblOwnerCost.top - 2) -width 75
 
 $btnCycle = Add-FormObject $form -objType button -objName btnCycle -text "Cycle Slots" -x $pad -y ($grpNames.Bottom + $pad*5) -autoSize
 $btnCycle.add_Click({CycleSlots })
