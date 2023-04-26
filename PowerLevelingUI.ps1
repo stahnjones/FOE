@@ -216,7 +216,7 @@ function Copy-NamesToClipboard{
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
 
  $header="$owner $($shortnames.($gbName -replace(" |'", '_')))  $($gbLvl -1) → $gbLvl"
- $investors=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtName" -and [int]($_.name.substring($_.name.length - 1)) -le 5 }).foreach({"$($_.name.substring($_.name.length - 1)): $($_.Text) - $($grpNames.controls["txtInvest$($_.name.substring($_.name.length - 1))"].text)" }))
+ $investors=[string]::Join("`n", $grpNames.controls.where({$_.name -match "txtInvest" -and $_.text}).foreach({"$($_.tag): $($grpNames.controls["txtName$($_.tag)"].Text) - $($_.text)" }))
  $footer="(self: $ownerCost)"
 
  "$header`n$investors`n$footer" | Set-Clipboard
@@ -254,10 +254,10 @@ $grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad
  $tCkb.Add_MouseEnter({Show-ToolTip $this -text $this.tag})
  $tCkb.Add_MouseLeave({$obj_tt.Hide($this.parent)})
 
- $tTxt=Add-FormObject $grpNames -objType textbox -objName "txtName$_" -x ($tCkb.right + $pad) -y $tCkb.top -width 170
+ $tTxt=Add-FormObject $grpNames -objType textbox -objName "txtName$_" -x ($tCkb.right + $pad) -y $tCkb.top -width 170 -tag $_
 
  if ($_ -le 5) {
-  $tInv=Add-FormObject $grpNames -objType textbox -objName "txtInvest$_" -x ($tTxt.Right + $Pad *2) -y $tTxt.top -width 40 -margin @{right=10}
+  $tInv=Add-FormObject $grpNames -objType textbox -objName "txtInvest$_" -x ($tTxt.Right + $Pad *2) -y $tTxt.top -width 40 -margin @{right=10} -tag $_
   $tInv.TabStop = $false
   $tInv.Enabled = $false
  }
@@ -275,6 +275,8 @@ $numMult.Add_ValueChanged({Update-Slots})
 
 $lblGB = Add-FormObject $grpGB -objType Label -objName lblGB -x ($pad) -y ($txtOwner.bottom + $pad ) -autoSize -text "GB:"
 $cmbGB = Add-FormObject $grpGB -objType ComboBox -objName cmbGB -x ($lblGB.Right + $Pad) -y ($lblGB.top - 2) -width 150
+$cmbGb.AutoCompleteMode = 'Append'
+$cmbGB.AutoCompleteSource = 'ListItems'
 $cmbGB.add_SelectedValueChanged({Update-Slots})
 
 $gbData.gbs.PSObject.Properties.Name|sort|%{[void]($cmbGB.items.add($_ -replace('_', ' ') -replace(' s ', "'s ")))}
