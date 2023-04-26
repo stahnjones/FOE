@@ -4,59 +4,17 @@ Param(
 )
 
 $cache_file="$PSScriptRoot\gbData.json"
+$cache_file2="$PSScriptRoot\gbShort.json"
 
-
-$shortNames=@{
- Observatory='Obs'
- Temple_of_Relics='ToR'
- Oracle_of_Delphi='OoD'
- Galata_Tower='Galata'
- Tower_of_Babel='ToB'
- Statue_of_Zeus='Zeus'
- Colosseum='Colo'
- Lighthouse_of_Alexandria='LoA'
- Hagia_Sophia='HS'
- Cathedral_of_Aachen='CoA'
- St_Mark_s_Basilica='SMB'
- Notre_Dame='ND'
- Saint_Basil_s_Cathedral='SBC'
- Castel_del_Monte='CdM'
- Deal_Castle='DC'
- Frauenkirche_of_Dresden='FoD'
- Capitol='Cap'
- Royal_Albert_Hall='RAH'
- Chateau_Frontenac='CF'
- Alcatraz='Traz'
- Space_Needle='SN'
- Atomium='Atom'
- Cape_Canaveral='CC'
- The_Habitat='Hab'
- Lotus_Temple ='LT'
- Innovation_Tower='Inno'
- Truce_Tower='Truce'
- Voyager_V1='Voy'
- The_Arc='Arc'
- Rain_Forest_Project='RFP'
- Gaea_Statue='Gaea'
- Arctic_Orangery='AO'
- Seed_Vault='SV'
- Atlantis_Museum='AM'
- The_Kraken='Kra'
- The_Blue_Galaxy='BG'
- Terracotta_Army='TA'
- Himeji_Castle='HC'
- The_Virgo_Project='VP'
- Star_Gazer='SG'
- Space_Carrier='SC'
- Flying_Island='Island'
- AI_Core='Core'
-}
-
-if ($save_cache.IsPresent -or ! (test-path $cache_file)) {
+if ($save_cache.IsPresent -or ! (test-path $cache_file) -or ! (test-path $cache_file2)) {
  Retrieve-GbData
  $gbData|ConvertTo-Json -Depth 99 -Compress | sc $cache_file
+ 
+ Retrieve-GbShortNames
+ $shortnames|ConvertTo-Json -Compress | sc $cache_file2
 } else {
  $gbData = gc $cache_file | ConvertFrom-Json
+ $shortnames = gc $cache_file2 | ConvertFrom-Json
 }
 
 function CycleNames{
@@ -103,6 +61,25 @@ function CycleSlots{
  }
 
  $numGBLvl.Value++
+}
+
+function Retrieve-GbShortNames{
+ Param([string]$url='https://foe.tools/_nuxt/42abc78.js')
+
+ Write-Information "Downloading GB Short Names from $url" -InformationAction Continue
+ 
+ try {
+  $jsShort = (IWR $url).content
+  $prefix='foe_data.gb_short'
+  $terminator='foe_data.goods'
+  $script:shortnames=@{}
+  $start_loc=$jsShort.IndexOf("`"$prefix")
+  $end_loc = $jsShort.IndexOf("`"$terminator") - $start_loc - 1
+ ($jsShort.Substring($start_loc, $end_loc)) -split(',') -replace("$prefix\.|`"")|%{$gbname,$short = $_ -split(':'); $script:shortnames.$gbname = $short}
+
+ } catch {
+  write-warning 'error downloading'
+ }
 }
 
 function Retrieve-GbData{
