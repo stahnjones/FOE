@@ -1,5 +1,6 @@
 Param(
- [switch]$save_cache
+ [switch]$save_cache,
+ [int]$num_slots=12
 )
 
 $cache_file="$PSScriptRoot\gbData.json"
@@ -69,7 +70,7 @@ function CycleSlots{
  $script:sourceIDs=@()
 
  $slot=1
- while ($slot -le 9) {
+ while ($slot -le $num_slots) {
   $tCkb=$grpNames.controls["ckbKeep$slot"]
   $tTxt=$grpNames.controls["txtName$slot"]
   if (! $tckb.Checked -and -not $tTxt.Text) {
@@ -83,7 +84,7 @@ function CycleSlots{
   $slot++
  }
 
- 1..9|%{
+ 1..$num_slots|%{
   $tCkb = $grpNames.controls["ckbKeep$_"]
   if (! $tCkb.Checked) {
    $tName = $grpNames.controls["txtName$_"].text
@@ -248,7 +249,7 @@ $form.AutoSizeMode = 'GrowAndShrink'
 $form.Padding.Right = $pad
 $grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad -y $pad -autoSize -text "Lock      Name                                                      Invest" -margin $pad -padding $pad
 
-1..9|%{
+1..$num_slots|%{
  $tCkb=Add-FormObject $grpNames -objType checkbox -objName "ckbKeep$_" -x $pad -y (($pad *($_+1)) + (20*($_-1))) -text $_ -autoSize -tag "Keep slot $_ during cycle"
  $tCkb.Add_MouseEnter({Show-ToolTip $this -text $this.tag})
  $tCkb.Add_MouseLeave({$obj_tt.Hide($this.parent)})
