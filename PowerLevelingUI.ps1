@@ -6,6 +6,53 @@ Param(
 $cache_file="$PSScriptRoot\gbData.json"
 $cache_file2="$PSScriptRoot\gbShort.json"
 
+<#
+$shortNames=@{
+ Observatory='Obs'
+ Temple_of_Relics='ToR'
+ Oracle_of_Delphi='OoD'
+ Galata_Tower='Galata'
+ Tower_of_Babel='ToB'
+ Statue_of_Zeus='Zeus'
+ Colosseum='Colo'
+ Lighthouse_of_Alexandria='LoA'
+ Hagia_Sophia='HS'
+ Cathedral_of_Aachen='CoA'
+ St_Mark_s_Basilica='SMB'
+ Notre_Dame='ND'
+ Saint_Basil_s_Cathedral='SBC'
+ Castel_del_Monte='CdM'
+ Deal_Castle='DC'
+ Frauenkirche_of_Dresden='FoD'
+ Capitol='Cap'
+ Royal_Albert_Hall='RAH'
+ Chateau_Frontenac='CF'
+ Alcatraz='Traz'
+ Space_Needle='SN'
+ Atomium='Atom'
+ Cape_Canaveral='CC'
+ The_Habitat='Hab'
+ Lotus_Temple ='LT'
+ Innovation_Tower='Inno'
+ Truce_Tower='Truce'
+ Voyager_V1='Voy'
+ The_Arc='Arc'
+ Rain_Forest_Project='RFP'
+ Gaea_Statue='Gaea'
+ Arctic_Orangery='AO'
+ Seed_Vault='SV'
+ Atlantis_Museum='AM'
+ The_Kraken='Kra'
+ The_Blue_Galaxy='BG'
+ Terracotta_Army='TA'
+ Himeji_Castle='HC'
+ The_Virgo_Project='VP'
+ Star_Gazer='SG'
+ Space_Carrier='SC'
+ Flying_Island='Island'
+ AI_Core='Core'
+}
+#>
 if ($save_cache.IsPresent -or ! (test-path $cache_file) -or ! (test-path $cache_file2)) {
  Retrieve-GbData
  $gbData|ConvertTo-Json -Depth 99 -Compress | sc $cache_file
@@ -168,13 +215,16 @@ Function Add-FormObject {
 function Update-Slots{
  $gbName = $cmbGB.selectedItem
  $gbLvl = $numGBLvl.value
- $mult = $numMult.value
+ #$mult = $numMult.value
 
- if (! $gbName -or ! $gbLvl -or ! $mult) {return}
+ if (! $gbName -or ! $gbLvl <#-or ! $mult#>) {return}
 
  $lvlData = $gbData.gbsData.$($gbName -replace(" |'", '_')).levels[$gbLvl - 1]
  1..5|%{
-  $grpNames.controls["txtInvest$_"].text = [math]::Ceiling($lvlData.reward[$_-1].fp * $mult)
+  $tMult = $grpNames.controls["numMult$_"].value
+  $tInvestAmt=[math]::Ceiling($lvlData.reward[$_-1].fp * $tMult)
+  if ($tInvestAmt -eq 0) {$tInvestAmt = 1}
+  $grpNames.controls["txtInvest$_"].text = $tInvestAmt
  }
 
  $ownerCost = $lvlData.cost - ((1..5|%{$grpNames.controls["txtInvest$_"].text})|Measure-Object -Sum).sum
@@ -224,7 +274,7 @@ $form.Name = "PowerLeveling"
 $form.AutoSize = $true
 $form.AutoSizeMode = 'GrowAndShrink'
 $form.Padding.Right = $pad
-$grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad -y $pad -autoSize -text "Lock      Name                                                      Invest" -margin $pad -padding $pad
+$grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad -y $pad -autoSize -text "Lock      Name                                                      Invest       Mult" -margin $pad -padding $pad
 
 1..$num_slots|%{
  $tCkb=Add-FormObject $grpNames -objType checkbox -objName "ckbKeep$_" -x $pad -y (($pad *($_+1)) + (20*($_-1))) -text $_ -autoSize -tag "Keep slot $_ during cycle"
@@ -237,6 +287,9 @@ $grpNames = Add-FormObject $form -objType "GroupBox" -objName "grpNames" -x $pad
   $tInv=Add-FormObject $grpNames -objType textbox -objName "txtInvest$_" -x ($tTxt.Right + $Pad *2) -y $tTxt.top -width 40 -margin @{right=10} -tag $_
   $tInv.TabStop = $false
   $tInv.Enabled = $false
+
+  $tMult=Add-FormObject $grpNames -objType numericUpDown -objName "numMult$_" -increment 0.01 -decimals 2 -text 1.90 -x ($tInv.Right + $Pad) -y $tInv.top -w 50 -margin $pad -tag $_
+  $tMult.Add_ValueChanged({Update-Slots})
  }
 }
 
@@ -245,10 +298,11 @@ $grpGB = Add-FormObject $form -objType GroupBox -objName grpGB -x ($grpNames.Rig
 
 $lblOwner = Add-FormObject $grpGB -objType Label -objName lblOwner -x $pad -y ($pad * 2) -text "Name:" -autoSize
 $txtOwner = Add-FormObject $grpGB -objType TextBox -objName txtOwner -x ($lblOwner.Right + $pad) -y ($lblOwner.top - 2) -width 175
-
+<#
 $lblMult = Add-FormObject $grpGB -objType Label -objName lblMult -x ($txtOwner.right + $pad) -y ($lblOwner.top) -autoSize -text 'mult:'
 $numMult = Add-FormObject $grpGB -objType NumericUpDown -increment 0.01 -decimals 2 -text 1.90 -x ($lblMult.Right + $pad) -y $txtOwner.top -w 50 -margin $pad
 $numMult.Add_ValueChanged({Update-Slots})
+#>
 
 $lblGB = Add-FormObject $grpGB -objType Label -objName lblGB -x ($pad) -y ($txtOwner.bottom + $pad ) -autoSize -text "GB:"
 $cmbGB = Add-FormObject $grpGB -objType ComboBox -objName cmbGB -x ($lblGB.Right + $Pad) -y ($lblGB.top - 2) -width 150
